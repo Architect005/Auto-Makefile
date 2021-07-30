@@ -1,0 +1,116 @@
+#!/usr/bin/env bash
+##
+## EPITECH PROJECT, 2021
+## automakefile
+## File description:
+## make files automaticly
+##
+
+if [ -z $1 ]; then
+    exit 84
+fi
+file=$1
+if [ ! -f $file ]; then
+    exit 84
+fi
+
+touch Makefile
+while IFS= read -r line
+do
+    cont=$(echo $line | cut -d ';' -f 1)
+    if [ $cont = "SOURCES_DIR" ]; then
+        source="$(echo $line | cut -d ';' -f 2)/"
+    fi
+    if [ $cont = "UNZIP" ]; then
+        unzip=$(echo $line | cut -d ';' -f 2)
+    fi
+    if [ $cont = "UNZIPFLAGS" ]; then
+        unzip_flag="$(echo $line | cut -d ';' -f 2)"
+    fi
+    if [ $cont = "ZIP" ]; then
+        compress=$(echo $line | cut -d ';' -f 2)
+    fi
+    if [ $cont = "ZIPFLAGS" ]; then
+        zip_flag="$(echo $line | cut -d ';' -f 2)"
+    fi
+done < $file
+
+while IFS= read -r line
+do
+    cont=$(echo $line | cut -d ';' -f 1)
+    if [ ${cont: -2} = ".c" ]; then
+        src_files+='\t$(D_SRC)'$cont'\t\\''\n'
+    fi
+    if [ $cont = "HEADERS_DIR" ]; then
+        header=$(echo $line | cut -d ';' -f 2)
+    fi
+    if [ $cont = "PROJECT_DIR" ]; then
+        directory=$(echo $line | cut -d ';' -f 2)
+    fi
+    if [ $cont = "LIBS_DIR" ]; then
+        libs=$(echo $line | cut -d ';' -f 2)
+    fi
+    if [ $cont = "CC" ]; then
+        compilator=$(echo $line | cut -d ';' -f 2)
+    fi
+    if [ $cont = "CFLAGS" ]; then
+        flag=$(echo $line | cut -d ';' -f 2)
+    fi
+    if [ $cont = "EXEC" ]; then
+        binary=$(echo $line | cut -d ';' -f 2)
+    fi
+    if [ $cont = "LDFLAGS" ]; then
+        ld_flags=$(echo $line | cut -d ';' -f 2)
+    fi
+    if [ $cont = "BCK_DIR" ]; then
+        back_up=$(echo $line | cut -d ';' -f 2)
+    fi
+done < $file
+
+#err=$(echo $1 | cut -d '/' -f 1)
+#if [[ $err != $directory ]]; then
+#    exit 84
+#fi
+if [ -z $directory ]; then
+    exit 84
+fi
+
+clean='\trm -f *.gc*\n''\trm -f vgcore.*\n''\trm -f *~\n'
+{
+
+    if [[ $source = "." ]]; then
+        source="./"
+    fi
+    echo -e 'D_SRC\t=\t'$source'/\n'
+    echo -e 'D_INC\t=\t'$source$header'\n'
+    echo -e 'D_LIB\t=\t'$source$libs'\n'
+    echo -e 'CC\t=\t'$compilator'\n'
+    printf "SRC\t=\t"
+    for value in "${src_files[@]}"
+    do
+        echo -e $src_files
+    done
+    echo -e 'OBJ\t=\t$(SRC:.c=.o)''\n'
+    echo -e 'NAME\t=\t'$binary'\n'
+    echo -e 'CFLAGS\t=\t'$flag' -I$(D_INC)\n'
+    echo -e 'LDFLAGS\t=\t'$ld_flag'\n'
+    echo -e 'BCK_DIR\t=\t'$back_up'\n'
+    echo -e 'ZIP\t=\t'$compress'\n'
+    echo -e 'ZIPFLAGS\t=\t'$zip_flag'\n'
+    echo -e 'UNZIP\t=\t'$unzip'\n'
+    echo -e 'UNZIPFLAGS\t=\t-xvf''\n'
+    echo -e 'all\t:\t$(NAME)\n'
+    echo -e '$(NAME)\t:\t$(OBJ)''\n\t''\t$(CC) -o $(NAME) $(OBJ) $(CFLAGS) $(LDFLAGS)\n'
+    echo -e 'clean:''\n\t''rm -f $(OBJ)\n'$clean
+    echo -e 'fclean:''\t''clean''\n\t''rm -f $(NAME)\n'
+    echo -e 're\t:\tfclean all\n'
+    echo -e 'archive:\n''\t@$(ZIP) $(ZIPFLAGS) ./'$back_up'/'$back_up'_1.tar $(SRC)'
+    echo -e '\techo "'$back_up'_1.'$compress' file generated."\n'
+    echo -e 'revert:\n''\t''$(UNZIP) $(UNZIPFLAGS)'' ''./'$back_up'/'$back_up'_1.'$unzip'\n'
+    echo -e 'delete:\n''\trm -f ./'$back_up'/'$back_up'_1.tar\n'
+    echo -e '.PHONY\t:\tall clean fclean re archive revert num delete'
+}>>Makefile
+dir=$(dirname $file)
+mv Makefile $dir
+
+exit 0
