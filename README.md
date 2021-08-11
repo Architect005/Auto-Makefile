@@ -1,7 +1,7 @@
 # Auto-Makefile
 Script to generate automaticly a makefile with a configuration file
 
-usage : automakefile "configuration file"
+usage : automakefile --configuration file--
 
 The configuration file can contain the following (potentially unordered) lines:
  • source_filename;dependence1 dependence2. . .
